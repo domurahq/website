@@ -228,6 +228,8 @@ h1,h2,h3{color:var(--ink);font-weight:900;margin:0;letter-spacing:-.02em}
 .teased .tease{opacity:1;pointer-events:auto}
 .teased svg{opacity:.25;filter:blur(3px)}
 .ms .mono:empty,#proto-updated:empty{display:none}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.privacy{margin-top:4px;font-size:14px;opacity:.8}
 </style>
 </head>
 <body>
@@ -417,9 +419,11 @@ h1,h2,h3{color:var(--ink);font-weight:900;margin:0;letter-spacing:-.02em}
           <form class="form" id="signup" novalidate>
             <label class="sr" for="email">Email</label>
             <input id="email" type="email" autocomplete="email" placeholder="you@example.com" required>
-            <button class="btn btn-accent" type="submit">Get updates</button>
+            <input class="hp" type="text" name="website" id="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <button class="btn btn-accent" type="submit" id="signup-btn">Get updates</button>
           </form>
           <p class="thanks" id="thanks" aria-live="polite"></p>
+          <p class="small privacy">We\'ll only use your email for Domura updates.</p>
         </div>
       </div>
       <div class="events" id="events">
@@ -506,8 +510,17 @@ h1,h2,h3{color:var(--ink);font-weight:900;margin:0;letter-spacing:-.02em}
     li.querySelector('.mono').textContent=e.when;li.querySelector('b').textContent=e.name;li.querySelector('.where').textContent=e.where;
     ul.appendChild(li)});
 
-  document.getElementById('signup').onsubmit=function(e){e.preventDefault();var v=document.getElementById('email');
-    document.getElementById('thanks').textContent=v.checkValidity()&&v.value?'Thanks. You will hear from us at the next milestone.':'Please enter a valid email address.'};
+  var SIGNUP_URL='https://script.google.com/a/macros/domura.com/s/AKfycbwHB9nwYyIxyw9TvHoWrpEWxjrbASZdBEk78nigWRVzn_KkuJJHFy9gdFUL_sP9od7f/exec';
+  document.getElementById('signup').onsubmit=function(e){e.preventDefault();
+    var v=document.getElementById('email'),out=document.getElementById('thanks'),btn=document.getElementById('signup-btn');
+    if(!(v.checkValidity()&&v.value)){out.textContent='Please enter a valid email address.';return}
+    btn.disabled=true;out.textContent='Sending\u2026';
+    var body=new URLSearchParams({email:v.value,page:location.href,website:document.getElementById('hp').value});
+    fetch(SIGNUP_URL,{method:'POST',mode:'no-cors',body:body})
+      .then(function(){out.textContent='Thanks. You\u2019ll hear from us at the next milestone.';v.value=''})
+      .catch(function(){out.textContent='Something went wrong. Please email us at info@domura.com.'})
+      .then(function(){btn.disabled=false});
+  };
 })();
 </script>
 </body>
